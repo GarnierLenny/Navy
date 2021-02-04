@@ -1,0 +1,228 @@
+SCREEN1:
+aymeric@aymeric-svr:~ ./navy maps/my_navy.txt
+my_pid: 8737
+waiting for enemy connection...
+
+enemy connected
+
+my positions:
+ |A B C D E F G H
+-+---------------
+1|. . 2 . . . . .
+2|. . 2 . . . . .
+3|. . . . . . . .
+4|. . . 3 3 3 . .
+5|. 4 . . . . . .
+6|. 4 . . . . . .
+7|. 4 . 5 5 5 5 5
+8|. 4 . . . . . .
+
+enemy's positions:
+ |A B C D E F G H
+-+---------------
+1|. . . . . . . .
+2|. . . . . . . .
+3|. . . . . . . .
+4|. . . . . . . .
+5|. . . . . . . .
+6|. . . . . . . .
+7|. . . . . . . .
+8|. . . . . . . .
+
+attack: D1
+D1: hit
+
+waiting for enemy's attack...
+A1: missed
+
+my positions:
+ |A B C D E F G H
+-+---------------
+1|o . 2 . . . . .
+2|. . 2 . . . . .
+3|. . . . . . . .
+4|. . . 3 3 3 . .
+5|. 4 . . . . . .
+6|. 4 . . . . . .
+7|. 4 . 5 5 5 5 5
+8|. 4 . . . . . .
+
+enemy's positions:
+ |A B C D E F G H
+-+---------------
+1|. . . x . . . .
+2|. . . . . . . .
+3|. . . . . . . .
+4|. . . . . . . .
+5|. . . . . . . .
+6|. . . . . . . .
+7|. . . . . . . .
+8|. . . . . . . .
+
+attack:
+
+-------------------------------------------------------------------------
+
+SCREEN2:
+aymeric@aymeric-svr:~ ./navy 8737 maps/my_navy2.txt
+my_pid: 8738
+successfully connected
+
+my positions:
+ |A B C D E F G H
+-+---------------
+1|. . . 2 . . . .
+2|. . . 2 . . . .
+3|. . . . . . . .
+4|3 3 3 . . . . .
+5|. . 4 . . . . .
+6|. . 4 5 5 5 5 5
+7|. . 4 . . . . .
+8|. . 4 . . . . .
+
+enemy's positions:
+ |A B C D E F G H
+-+---------------
+1|. . . . . . . .
+2|. . . . . . . .
+3|. . . . . . . .
+4|. . . . . . . .
+5|. . . . . . . .
+6|. . . . . . . .
+7|. . . . . . . .
+8|. . . . . . . .
+
+waiting for enemy's attack...
+D1: hit
+
+attack: A1
+A1: missed
+
+my positions:
+ |A B C D E F G H
+-+---------------
+1|. . . x . . . .
+2|. . . 2 . . . .
+3|. . . . . . . .
+4|3 3 3 . . . . .
+5|. . 4 . . . . .
+6|. . 4 5 5 5 5 5
+7|. . 4 . . . . .
+8|. . 4 . . . . .
+
+enemy's positions:
+ |A B C D E F G H
+-+---------------
+1|o . . . . . . .
+2|. . . . . . . .
+3|. . . . . . . .
+4|. . . . . . . .
+5|. . . . . . . .
+6|. . . . . . . .
+7|. . . . . . . .
+8|. . . . . . . .
+
+waiting for enemy's attack...
+
+/*
+
+/*
+** EPITECH PROJECT, 2020
+** B-PSU-101-RUN-1-1-navy-Lenny.garnier
+** File description:
+** get_info
+*/
+
+#include "my.h"
+
+void get_pid(int sig, siginfo_t *info, void *context)
+{
+    (void)sig;
+    (void)context;
+    signalPid = info->si_pid;
+}
+
+void get_sig(int signal)
+{
+    signal = signal;
+    if (signal == SIGUSR1) {
+        //my_printf("1\n");
+        signalPid = 1;
+    }
+    else if (signal == SIGUSR2) {
+        //my_printf("0\n");
+        signalPid = 0;
+    }
+    return;
+}
+
+char *fill_bin_str(char *str, int *y, int value)
+{
+    char *buffer = my_strdup(str);
+
+    if (signalPid == value) {
+        buffer[*y] = value + 48;
+        signalPid = -1;
+        *y += 1;
+    }
+    return buffer;
+}
+
+void bef_game_p1(global_t *g)
+{
+    struct sigaction sa;
+/*     int y = 0;
+    char *buffer = malloc(sizeof(char) * 8); */
+
+    my_printf("my_pid: %d\n", getpid());
+    sa.sa_handler = get_sig;
+    sa.sa_flags = SA_SIGINFO;
+    my_putstr("waiting for enemy connection...\n\n");
+    sa.sa_sigaction = get_pid;
+    sigaction(SIGUSR1, &sa, NULL);
+    pause();
+    my_printf("enemy connected\n\n");
+    g->p2->pid = signalPid;
+
+    send_char_sig('F', g->p2->pid);
+    usleep(50);
+    sigaction(SIGUSR1, &sa, NULL);
+    pause();
+    send_char_sig('8', g->p2->pid);
+    signalPid = -1;
+
+/*     printf("%c", get_sig_str(&sa, &y));
+    usleep(50);
+    kill(g->p2->pid, SIGUSR1);
+    printf("%c\n", get_sig_str(&sa, &y));
+    buffer[y] = '\0'; */
+}
+
+void bef_game_p2(int pid)
+{
+    //struct sigaction sa;
+    char *buffer = malloc(sizeof(char) * 8);
+    int y = 0;
+
+    my_printf("my_pid: %d\n", getpid());
+/*     sa.sa_handler = get_sig;
+    sa.sa_flags = SA_SIGINFO; */
+    my_putstr("successfully connected\n\n");
+    usleep(50);
+
+    kill(pid, SIGUSR1);
+    my_printf("%c", get_sig_str_signal(&y));
+    usleep(50);
+    kill(pid, SIGUSR1);
+    my_printf("%c\n", get_sig_str_signal(&y));
+    buffer[y] = '\0';
+
+/*     send_char_sig('A', pid);
+    usleep(50);
+    sigaction(SIGUSR1, &sa, NULL);
+    pause();
+    send_char_sig('4', pid);
+    signalPid = -1; */
+}
+
+*/
